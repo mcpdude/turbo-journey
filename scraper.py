@@ -1,5 +1,13 @@
 import newspaper
 import sqlite3
+import sys
+
+conn = sqlite3.connect('ratings.db')
+c = conn.cursor()
+
+
+
+
 
 # Read in sources in sources.txt
 
@@ -19,13 +27,27 @@ for source in source_list:
 	print(articles[source].size())
 
 for article_source in articles:
-	stories_count = articles[article_source].size()
+	
 
-	for i in range(stories_count):
-		story = articles[article_source].articles[i]
+	for story in articles[article_source].articles:
 		story.download()
 		story.parse()
+		# store a copy of the text locallly
+		with open(story.title, 'w+') as local_copy:
+			local_copy.write(story.text)
+
+		# offer the story to the reader
 		print(story.text)
+
+		# Get their thoughts
+		interesting = input("Did you find this article interesting? [Y/N]\n")
+		if 'y' in interesting.lower():
+			interesting = 1
+		else:
+			interesting = 0
+		c.execute('''INSERT INTO ratings VALUES(?, 1, ?, ?, ?)''', [story.url, interesting, "article storage/" + story.title, "article metadata/"+ story.title])
+		conn.commit()
+
 
 # Store URLs in SQLite db
 
