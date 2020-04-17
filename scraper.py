@@ -4,13 +4,15 @@ import sys
 
 conn = sqlite3.connect('ratings.db')
 c = conn.cursor()
+read_articles = []
+c.execute('''SELECT URL FROM ratings WHERE read = 1''' )
+conn.commit()
 
-
-
-
+for already_read in c.fetchall():
+	print(already_read)
+	read_articles.append(already_read[0])
 
 # Read in sources in sources.txt
-
 with open('sources.txt') as sources_file:
 	sources = sources_file.read()
 	source_list = []
@@ -20,20 +22,19 @@ with open('sources.txt') as sources_file:
 			source_list.append(line)
 
 # Download articles from the sources
-
 articles = {}
 for source in source_list:
 	articles[source] = newspaper.build(source, memoize_articles=False)
 	print(articles[source].size())
 
 for article_source in articles:
-	
-
 	for story in articles[article_source].articles:
+		print(story.url)
 		story.download()
 		story.parse()
-		# store a copy of the text locallly
-		with open(story.title, 'w+') as local_copy:
+
+		# store a copy of the text locally
+		with open("article storage/" + story.title, 'w+') as local_copy:
 			local_copy.write(story.text)
 
 		# offer the story to the reader
